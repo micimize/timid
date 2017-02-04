@@ -1,0 +1,28 @@
+.time.bullet {
+    width: 2.5em;
+    fill: lightblue;
+    line {
+        stroke-width: 0.75em;
+        stroke: blue;
+        stroke-linecap: round;
+    }
+    .duration {
+        .start {
+            stroke: green;
+        }
+        .end {
+            stroke-width: 0.75em;
+            stroke: lightgrey
+        }
+        path {
+            stroke: white;
+            fill: white;
+        }
+    }
+    &.instant {
+        fill: lightgrey;
+        line {
+            stroke: grey;
+        }
+    }
+}
