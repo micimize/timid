@@ -6,3 +6,9 @@ npm-debug.log
 *hot-update.json
 *hot-update.js
 *hot-update.js.map
+
+.DS_Store
+.merlin
+npm-debug.log
+lib/bs/
+node_modules/

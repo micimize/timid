@@ -1,0 +1,21 @@
+{
+  "name": "reason",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world"
+  },
+  "keywords": [
+    "BuckleScript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "bs-platform": "^2.0.0"
+  },
+  "dependencies": {
+    "bs-moment": "^0.1.8",
+    "moment": "^2.19.1",
+    "transit-js": "^0.8.846"
+  }
+}
