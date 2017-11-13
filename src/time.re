@@ -3,7 +3,7 @@
  * 2017-11-11T16:42:21.430Z-2017-11-12T16:42:21.430Z
  */
 
-/* empty time */
+/* empty time 
 module Instant = {
   type t = unit;
   let make = () => ();
@@ -13,11 +13,42 @@ module Instant = {
       pub rep = (()) => ();
     });
   let readerSpec = () => ();
-};
+};*/
 
 module Duration = {
+
+  let optional = (regex: string) => {j|(?:$regex)?|j};
+  let designator = (prefix: string, units: list(string)) =>
+    prefix ++ String.concat("", List.map((suffix: string) => optional({j|([0-9,.]+)$suffix|j}), units));
+
+  let period = designator({|(\-|\+)?P|}, ["Y", "M", "D"]);
+  let time = optional(designator("T", ["H", "M", "S"]));
+  let pattern = Js.Re.fromString("^" ++ period ++ time ++ "$");
+
+  let parse = (~amount: string = "0") =>
+    amount
+    |> Js.String.replace(",", ".")
+    |> Js.Float.fromString
+    |> a => switch (Js.Float.isFinite(a)) {
+    | true => a
+    | false => None
+    };
+
+  /* let normalize = ([ sign = "+", ...amounts ]) => List.map(parse, amounts); */
+
+  let m = Js.String.match(pattern, "P0,5Y4M.3DT5M1S");
+  let ma =
+    switch m {
+    |  Some(array) => normalize(Array.to_list(array))
+        { sign, years, months, day, hour, minute, second }
+    |  _ => "Failure"
+    };
+
+
   include MomentRe.Duration;
+
   let make = MomentRe.duration;
+  
   let writerSpec =
     Transit.makeWriteHandler([@bs] {
       pub tag = () => "duration";
@@ -109,13 +140,32 @@ module Interval = {
 
 };
 
+/*
+   switch (match(string)) {
+   | ...
+   }
+*/
 module Time = {
   type t =
     | Instant
-    | Duration
-    | Moment
-    | Interval
-  /* TODO switch and select the time type */
+    | Duration(Duration.t)
+    | Moment(Moment.t)
+    | Interval(Interval.t) ;
+
+  /*let fromJSON = (json) =>
+    switch (Str.regexp({|hello \([A-Za-z]+\)|})) {
+    | Interval.mak()
+    }*/
+
+
+  let writerSpec =
+    Transit.makeWriteHandler([@bs] {
+      pub tag = () => "interval";
+      /* TODO make legible range */
+      pub rep = ({ moment, duration }, ()) => ( moment, duration )
+    });
+
+  let readerSpec = ((moment, duration)) => { moment, duration }
 };
 
 let reader = Transit.reader({

@@ -14,7 +14,9 @@
     "bs-platform": "^2.0.0"
   },
   "dependencies": {
+    "bs-jest": "^0.2.0",
     "bs-moment": "^0.1.8",
+    "jest": "^21.2.1",
     "moment": "^2.19.1",
     "transit-js": "^0.8.846"
   }
