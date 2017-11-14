@@ -17,32 +17,46 @@ module Instant = {
 
 module Duration = {
 
-  let optional = (regex: string) => {j|(?:$regex)?|j};
-  let designator = (prefix: string, units: list(string)) =>
-    prefix ++ String.concat("", List.map((suffix: string) => optional({j|([0-9,.]+)$suffix|j}), units));
+  type sign = Negative | Positive;
+  type dur = {
+    sign,
+    years: float,
+    months: float,
+    days: float,
+    hours: float,
+    minutes: float,
+    seconds: float
+  };
 
-  let period = designator({|(\-|\+)?P|}, ["Y", "M", "D"]);
-  let time = optional(designator("T", ["H", "M", "S"]));
-  let pattern = Js.Re.fromString("^" ++ period ++ time ++ "$");
+  module Parse = {
+    let optional = (regex: string) => {j|(?:$regex)?|j};
+    let designator = (prefix: string, units: list(string)) =>
+      prefix ++ String.concat("", List.map((suffix: string) => optional({j|([0-9,.]+)$suffix|j}), units));
 
-  let parse = (~amount: string = "0") =>
-    amount
-    |> Js.String.replace(",", ".")
-    |> Js.Float.fromString
-    |> a => switch (Js.Float.isFinite(a)) {
-    | true => a
-    | false => None
+    let period = designator({|(\-|\+)?P|}, ["Y", "M", "D"]);
+    let time = optional(designator("T", ["H", "M", "S"]));
+    let pattern = Js.Re.fromString("^" ++ period ++ time ++ "$");
+
+    let field = (amount: string) =>
+      amount
+      |> Js.String.replace(",", ".")
+      |> Js.Float.fromString;
+
+    let process = (arr: array(string)) => {
+      let [ s, ...amounts ] = Array.to_list(arr);
+      let [ years, months, days, hours, minutes, seconds ] = List.map(field, amounts);
+      let sign = switch s {
+      | "-" => Negative 
+      |  _  => Positive 
+      };
+      { sign,  years, months, days, hours, minutes, seconds };
     };
-
-  /* let normalize = ([ sign = "+", ...amounts ]) => List.map(parse, amounts); */
-
-  let m = Js.String.match(pattern, "P0,5Y4M.3DT5M1S");
-  let ma =
-    switch m {
-    |  Some(array) => normalize(Array.to_list(array))
-        { sign, years, months, day, hour, minute, second }
-    |  _ => "Failure"
-    };
+    let parse = (value) =>
+    switch (Js.String.match(pattern, value)) {
+    |  Some(array) => Some(process(array))
+    |  _ => None
+     }
+  };
 
 
   include MomentRe.Duration;
