@@ -15,61 +15,10 @@ module Instant = {
   let readerSpec = () => ();
 };*/
 
-module Duration = {
-
-  type sign = Negative | Positive;
-  type dur = {
-    sign,
-    years: float,
-    months: float,
-    days: float,
-    hours: float,
-    minutes: float,
-    seconds: float
-  };
-
-  module Parse = {
-    let optional = (regex: string) => {j|(?:$regex)?|j};
-    let designator = (prefix: string, units: list(string)) =>
-      prefix ++ String.concat("", List.map((suffix: string) => optional({j|([0-9,.]+)$suffix|j}), units));
-
-    let period = designator({|(\-|\+)?P|}, ["Y", "M", "D"]);
-    let time = optional(designator("T", ["H", "M", "S"]));
-    let pattern = Js.Re.fromString("^" ++ period ++ time ++ "$");
-
-    let field = (amount: string) =>
-      amount
-      |> Js.String.replace(",", ".")
-      |> Js.Float.fromString;
-
-    let process = (arr: array(string)) => {
-      let [ s, ...amounts ] = Array.to_list(arr);
-      let [ years, months, days, hours, minutes, seconds ] = List.map(field, amounts);
-      let sign = switch s {
-      | "-" => Negative 
-      |  _  => Positive 
-      };
-      { sign,  years, months, days, hours, minutes, seconds };
-    };
-    let parse = (value) =>
-    switch (Js.String.match(pattern, value)) {
-    |  Some(array) => Some(process(array))
-    |  _ => None
-     }
-  };
-
-
-  include MomentRe.Duration;
-
-  let make = MomentRe.duration;
-  
-  let writerSpec =
-    Transit.makeWriteHandler([@bs] {
-      pub tag = () => "duration";
-      pub rep = (duration, ()) => toJSON(duration);
-    });
-  let readerSpec = json => MomentRe.duration(json);
-};
+type IncrementalParser('a) =
+  | Raw(string)
+  | Partial(string, 'a);
+  | Completed(a);
 
 module Precision = {
   type t =
@@ -106,6 +55,7 @@ module Precision = {
     };
 };
 
+Js.String.contains
 /* TODO module Fuzz = {} */
 
 module Moment = {
